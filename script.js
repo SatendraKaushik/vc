@@ -2,7 +2,6 @@ const startCallButton = document.getElementById('startCall');
 const endCallButton = document.getElementById('endCall');
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
-
 let localStream;
 let peerConnection;
 const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] };
@@ -26,14 +25,7 @@ function connectWebSocket() {
     };
 
     signalingServer.onmessage = async (message) => {
-        let data;
-        if (message.data instanceof Blob) {
-            // Convert Blob to text
-            const text = await message.data.text();
-            data = JSON.parse(text);
-        } else {
-            data = JSON.parse(message.data);
-        }
+        const data = JSON.parse(message.data);
 
         if (data.offer) {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -47,25 +39,6 @@ function connectWebSocket() {
         }
     };
 }
-   signalingServer.onmessage = async (message) => {
-    try {
-        const dataText = await message.data.text(); // Read the Blob data as text
-        const data = JSON.parse(dataText); // Parse the text as JSON
-
-        if (data.offer) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            signalingServer.send(JSON.stringify({ answer }));
-        } else if (data.answer) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-        } else if (data.candidate) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-        }
-    } catch (error) {
-        console.error('Error handling WebSocket message:', error);
-    }
-};
 
 connectWebSocket();
 
