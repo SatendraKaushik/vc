@@ -22,6 +22,11 @@ signalingServer.onerror = (error) => {
 };
 
 startCallButton.addEventListener('click', async () => {
+    if (peerConnection) {
+        console.warn('Call already started');
+        return;
+    }
+
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
@@ -51,16 +56,25 @@ startCallButton.addEventListener('click', async () => {
 });
 
 endCallButton.addEventListener('click', () => {
-    if (peerConnection) {
-        peerConnection.close();
-        peerConnection = null;
-        console.log('Peer connection closed');
+    if (!peerConnection) {
+        console.warn('No active call to end');
+        return;
     }
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-        localVideo.srcObject = null;
-        remoteVideo.srcObject = null;
-        console.log('Media tracks stopped and video sources cleared');
+
+    try {
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = null;
+            console.log('Peer connection closed');
+        }
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localVideo.srcObject = null;
+            remoteVideo.srcObject = null;
+            console.log('Media tracks stopped and video sources cleared');
+        }
+    } catch (error) {
+        console.error('Error ending call:', error);
     }
 });
 
@@ -125,4 +139,3 @@ signalingServer.onmessage = async (message) => {
         console.error('Error handling signaling message:', error);
     }
 };
- 
