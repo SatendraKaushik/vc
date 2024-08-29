@@ -6,7 +6,7 @@ const remoteVideo = document.getElementById('remoteVideo');
 let localStream;
 let peerConnection;
 const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] };
-const signalingServerUrl = 'wss:/https://videocalling-1nud.onrender.com/';
+const signalingServerUrl = 'wss://videocalling-1nud.onrender.com/'; // Updated signaling server URL
 const signalingServer = new WebSocket(signalingServerUrl);
 
 startCallButton.addEventListener('click', async () => {
