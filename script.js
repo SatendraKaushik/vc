@@ -7,7 +7,26 @@ let localStream;
 let peerConnection;
 const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] };
 const signalingServerUrl = 'wss://videocalling-1nud.onrender.com/'; // Updated signaling server URL
+
+// Initialize WebSocket
 const signalingServer = new WebSocket(signalingServerUrl);
+
+// WebSocket Event Handlers
+signalingServer.onopen = () => {
+    console.log('WebSocket connection established.');
+};
+
+signalingServer.onerror = (error) => {
+    console.error('WebSocket Error:', error);
+};
+
+signalingServer.onclose = (event) => {
+    if (event.wasClean) {
+        console.log(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+    } else {
+        console.error('Connection died');
+    }
+};
 
 startCallButton.addEventListener('click', async () => {
     try {
