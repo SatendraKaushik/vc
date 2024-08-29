@@ -36,6 +36,7 @@ startCallButton.addEventListener('click', async () => {
         };
 
         peerConnection.ontrack = event => {
+            console.log('Received remote track:', event.streams[0]);
             remoteVideo.srcObject = event.streams[0];
         };
 
@@ -43,7 +44,7 @@ startCallButton.addEventListener('click', async () => {
         await peerConnection.setLocalDescription(offer);
         signalingServer.send(JSON.stringify({ offer }));
     } catch (error) {
-        console.error('Error accessing media devices.', error);
+        console.error('Error accessing media devices or starting call:', error);
     }
 });
 
@@ -61,7 +62,7 @@ endCallButton.addEventListener('click', () => {
 
 signalingServer.onmessage = async (message) => {
     const data = JSON.parse(message.data);
-    console.log('Received message:', data);
+    console.log('Received signaling message:', data);
 
     if (!peerConnection) {
         peerConnection = new RTCPeerConnection(configuration);
@@ -71,6 +72,7 @@ signalingServer.onmessage = async (message) => {
             }
         };
         peerConnection.ontrack = event => {
+            console.log('Received remote track:', event.streams[0]);
             remoteVideo.srcObject = event.streams[0];
         };
     }
@@ -78,7 +80,6 @@ signalingServer.onmessage = async (message) => {
     try {
         if (data.offer) {
             if (peerConnection.signalingState === 'stable') {
-                // If already stable, reset the peer connection
                 peerConnection.close();
                 peerConnection = new RTCPeerConnection(configuration);
                 peerConnection.onicecandidate = event => {
@@ -87,6 +88,7 @@ signalingServer.onmessage = async (message) => {
                     }
                 };
                 peerConnection.ontrack = event => {
+                    console.log('Received remote track:', event.streams[0]);
                     remoteVideo.srcObject = event.streams[0];
                 };
             }
