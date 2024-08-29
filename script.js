@@ -25,6 +25,28 @@ function connectWebSocket() {
         console.error('WebSocket error:', error);
     };
 
+    signalingServer.onmessage = async (message) => {
+        let data;
+        if (message.data instanceof Blob) {
+            // Convert Blob to text
+            const text = await message.data.text();
+            data = JSON.parse(text);
+        } else {
+            data = JSON.parse(message.data);
+        }
+
+        if (data.offer) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            signalingServer.send(JSON.stringify({ answer }));
+        } else if (data.answer) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        } else if (data.candidate) {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+    };
+}
    signalingServer.onmessage = async (message) => {
     try {
         const dataText = await message.data.text(); // Read the Blob data as text
