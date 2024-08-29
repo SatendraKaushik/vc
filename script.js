@@ -63,25 +63,47 @@ signalingServer.onmessage = async (message) => {
     const data = JSON.parse(message.data);
     console.log('Received message:', data);
 
-    if (data.offer) {
-        if (!peerConnection) {
-            peerConnection = new RTCPeerConnection(configuration);
-            peerConnection.onicecandidate = event => {
-                if (event.candidate) {
-                    signalingServer.send(JSON.stringify({ candidate: event.candidate }));
-                }
-            };
-            peerConnection.ontrack = event => {
-                remoteVideo.srcObject = event.streams[0];
-            };
+    if (!peerConnection) {
+        peerConnection = new RTCPeerConnection(configuration);
+        peerConnection.onicecandidate = event => {
+            if (event.candidate) {
+                signalingServer.send(JSON.stringify({ candidate: event.candidate }));
+            }
+        };
+        peerConnection.ontrack = event => {
+            remoteVideo.srcObject = event.streams[0];
+        };
+    }
+
+    try {
+        if (data.offer) {
+            if (peerConnection.signalingState === 'stable') {
+                // If already stable, reset the peer connection
+                peerConnection.close();
+                peerConnection = new RTCPeerConnection(configuration);
+                peerConnection.onicecandidate = event => {
+                    if (event.candidate) {
+                        signalingServer.send(JSON.stringify({ candidate: event.candidate }));
+                    }
+                };
+                peerConnection.ontrack = event => {
+                    remoteVideo.srcObject = event.streams[0];
+                };
+            }
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            signalingServer.send(JSON.stringify({ answer }));
+        } else if (data.answer) {
+            if (peerConnection.signalingState !== 'stable') {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            }
+        } else if (data.candidate) {
+            if (peerConnection.remoteDescription) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
         }
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        signalingServer.send(JSON.stringify({ answer }));
-    } else if (data.answer) {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-    } else if (data.candidate) {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+    } catch (error) {
+        console.error('Error handling signaling message:', error);
     }
 };
