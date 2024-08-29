@@ -1,0 +1,40 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #282c34;
+    color: white;
+}
+
+.container {
+    text-align: center;
+}
+
+video {
+    width: 45%;
+    margin: 10px;
+    border-radius: 10px;
+    background-color: #000;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+}
+
+#startCall {
+    background-color: #28a745;
+    color: white;
+}
+
+#endCall {
+    background-color: #dc3545;
+    color: white;
+}
