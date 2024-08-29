@@ -16,7 +16,7 @@ body {
 }
 
 .container {
-    width: 100%;
+    width: 65%;
     max-width: 1200px;
     display: flex;
     flex-direction: column;
