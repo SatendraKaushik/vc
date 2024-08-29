@@ -2,6 +2,7 @@ const startCallButton = document.getElementById('startCall');
 const endCallButton = document.getElementById('endCall');
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
+
 let localStream;
 let peerConnection;
 const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] };
