@@ -61,26 +61,14 @@ endCallButton.addEventListener('click', () => {
 });
 
 signalingServer.onmessage = async (message) => {
-    const data = JSON.parse(message.data);
-    console.log('Received signaling message:', data);
-
-    if (!peerConnection) {
-        peerConnection = new RTCPeerConnection(configuration);
-        peerConnection.onicecandidate = event => {
-            if (event.candidate) {
-                signalingServer.send(JSON.stringify({ candidate: event.candidate }));
-            }
-        };
-        peerConnection.ontrack = event => {
-            console.log('Received remote track:', event.streams[0]);
-            remoteVideo.srcObject = event.streams[0];
-        };
-    }
-
     try {
-        if (data.offer) {
-            if (peerConnection.signalingState === 'stable') {
-                peerConnection.close();
+        // Convert Blob to text if the message is a Blob
+        if (message.data instanceof Blob) {
+            const text = await message.data.text();
+            const data = JSON.parse(text);
+            console.log('Received signaling message:', data);
+
+            if (!peerConnection) {
                 peerConnection = new RTCPeerConnection(configuration);
                 peerConnection.onicecandidate = event => {
                     if (event.candidate) {
@@ -92,18 +80,36 @@ signalingServer.onmessage = async (message) => {
                     remoteVideo.srcObject = event.streams[0];
                 };
             }
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            signalingServer.send(JSON.stringify({ answer }));
-        } else if (data.answer) {
-            if (peerConnection.signalingState !== 'stable') {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+
+            if (data.offer) {
+                if (peerConnection.signalingState === 'stable') {
+                    peerConnection.close();
+                    peerConnection = new RTCPeerConnection(configuration);
+                    peerConnection.onicecandidate = event => {
+                        if (event.candidate) {
+                            signalingServer.send(JSON.stringify({ candidate: event.candidate }));
+                        }
+                    };
+                    peerConnection.ontrack = event => {
+                        console.log('Received remote track:', event.streams[0]);
+                        remoteVideo.srcObject = event.streams[0];
+                    };
+                }
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                signalingServer.send(JSON.stringify({ answer }));
+            } else if (data.answer) {
+                if (peerConnection.signalingState !== 'stable') {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                }
+            } else if (data.candidate) {
+                if (peerConnection.remoteDescription) {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                }
             }
-        } else if (data.candidate) {
-            if (peerConnection.remoteDescription) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-            }
+        } else {
+            console.error('Received non-Blob message:', message.data);
         }
     } catch (error) {
         console.error('Error handling signaling message:', error);
