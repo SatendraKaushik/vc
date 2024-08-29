@@ -25,8 +25,10 @@ function connectWebSocket() {
         console.error('WebSocket error:', error);
     };
 
-    signalingServer.onmessage = async (message) => {
-        const data = JSON.parse(message.data);
+   signalingServer.onmessage = async (message) => {
+    try {
+        const dataText = await message.data.text(); // Read the Blob data as text
+        const data = JSON.parse(dataText); // Parse the text as JSON
 
         if (data.offer) {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -38,8 +40,10 @@ function connectWebSocket() {
         } else if (data.candidate) {
             await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
         }
-    };
-}
+    } catch (error) {
+        console.error('Error handling WebSocket message:', error);
+    }
+};
 
 connectWebSocket();
 
