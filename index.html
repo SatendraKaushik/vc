@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Call App</title>
+    <title>Video Call</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Video Call</h1>
-        <input type="text" id="meetingIdInput" placeholder="Enter meeting ID">
-        <button id="joinMeeting">Join Meeting</button>
-        <video id="localVideo" autoplay muted></video>
-        <video id="remoteVideo" autoplay></video>
-        <div>
+        <div class="video-container">
+            <video id="localVideo" autoplay muted></video>
+            <video id="remoteVideo" autoplay></video>
+        </div>
+
+        <div class="controls-container">
+            <input type="text" id="meetingIdInput" placeholder="Enter Meeting ID" />
             <button id="startCall">Start Call</button>
+            <button id="joinMeeting">Join Meeting</button>
             <button id="endCall">End Call</button>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
