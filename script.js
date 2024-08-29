@@ -25,16 +25,16 @@ startCallButton.addEventListener('click', async () => {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
-        
+
         peerConnection = new RTCPeerConnection(configuration);
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-        
+
         peerConnection.onicecandidate = event => {
             if (event.candidate) {
                 signalingServer.send(JSON.stringify({ candidate: event.candidate }));
             }
         };
-        
+
         peerConnection.ontrack = event => {
             remoteVideo.srcObject = event.streams[0];
         };
@@ -61,8 +61,20 @@ endCallButton.addEventListener('click', () => {
 
 signalingServer.onmessage = async (message) => {
     const data = JSON.parse(message.data);
+    console.log('Received message:', data);
 
     if (data.offer) {
+        if (!peerConnection) {
+            peerConnection = new RTCPeerConnection(configuration);
+            peerConnection.onicecandidate = event => {
+                if (event.candidate) {
+                    signalingServer.send(JSON.stringify({ candidate: event.candidate }));
+                }
+            };
+            peerConnection.ontrack = event => {
+                remoteVideo.srcObject = event.streams[0];
+            };
+        }
         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
