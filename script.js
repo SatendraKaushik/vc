@@ -37,6 +37,7 @@ function setupWebSocket() {
             console.log('Received signaling message:', data);
 
             if (!peerConnection && data.offer) {
+                console.log('Creating new RTCPeerConnection');
                 peerConnection = new RTCPeerConnection(configuration);
                 peerConnection.onicecandidate = event => {
                     if (event.candidate) {
@@ -50,6 +51,7 @@ function setupWebSocket() {
 
             if (data.offer) {
                 if (peerConnection.signalingState === 'stable') {
+                    console.log('Closing existing peer connection');
                     peerConnection.close();
                     peerConnection = new RTCPeerConnection(configuration);
                     peerConnection.onicecandidate = event => {
