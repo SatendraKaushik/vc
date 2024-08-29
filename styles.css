@@ -16,7 +16,7 @@ body {
 }
 
 .container {
-    width: 63%;
+    width: 100%;
     max-width: 1200px;
     display: flex;
     flex-direction: column;
@@ -25,7 +25,7 @@ body {
 
 .video-container {
     display: flex;
-   max-width: 100%;
+    width: 100%;
     aspect-ratio: 16 / 9;
     margin-bottom: 20px;
     position: relative;
@@ -82,4 +82,3 @@ video {
 .controls-container button:active {
     transform: scale(0.98);
 }
- 
